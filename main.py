@@ -4,6 +4,8 @@ from pydantic import BaseModel
 
 import pandas as pd
 
+from passageiro import Passenger
+
 app = FastAPI()
 
 # rota raiz 
@@ -16,23 +18,43 @@ def raiz():
 
 database = pd.read_csv("train.csv")
 
+
+
 # rota get
 
-@app.get("/Passageiro")
+"""@app.get("/passageiro")
 def get_passageiro():
-    return df.Name
+    return df.Name"""
 
 
 
 # rota get por ID
 
-@app.get("/Passageiro/{id_passageiro}")
+@app.get("/passageiro/{id_passageiro}")
 def get_id_passageiro(id_passageiro: str):
-    try:
-        banana =  database.query('PassengerId == {}'.format(id_passageiro))
-        if banana is not None: 
-            return {"Status": 200, "Mensagem": (banana.Name)}
+        ##print(id_passageiro)
+    row =  database.loc[database['PassengerId'] == (id_passageiro)].head(1)
+    print(row)
+    if row is not None: 
+        passageiro = Passenger()
+        passageiro.id = row['PassengerId']
+        survived = int(row['Survived'])
+        if survived == 0 : 
+            passageiro.survived = False
         else:
-            return {"Status": 404, "Mensagem": "Nao encontrou passageiro"}
-    except Exception as erro:
-        return {"Status": 404, "Mensagem": str(erro)}
+            passageiro.survived = True
+        passageiro.boarding_class = row['Pclass']
+        passageiro.name = row['Name']
+        passageiro.sex = row['Sex']
+        passageiro.age = row['Age']
+        passageiro.brother_spouse_quantity = row['SibSp']
+        passageiro.parent_children_quantity = row['Parch']
+        passageiro.ticket_number = row['Ticket']
+        passageiro.fare = row['Fare']
+        passageiro.cabin = row['Cabin']
+        passageiro.embarked = row['Embarked']
+
+        return passageiro
+    else:
+        return {"Status": 404, "Mensagem": "Nao encontrou passageiro"}
+   
